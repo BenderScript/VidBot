@@ -157,14 +157,6 @@ def correct_audio_transcript(transcription_prompt, transcript_file):
             # Prepend "corrected_" to the filename of the transcript file
             corrected_transcript_file = prepend_suffix_to_filename(transcript_file, "corrected_")
 
-            # Check if the corrected transcript file exists
-            if os.path.exists(corrected_transcript_file):
-                # If it exists, remove it
-                os.remove(corrected_transcript_file)
-                print(f"File '{corrected_transcript_file}' removed successfully.")
-            else:
-                print(f"File '{corrected_transcript_file}' does not exist.")
-
             try:
                 # Try to open the transcript file
                 with open(transcript_file, "r") as tf:

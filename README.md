@@ -66,6 +66,13 @@ Example URL: [Introducing GPT-4](https://youtu.be/--khbXchTeE?si=O2DtXx8fcb0H4bt
 
 You can stop the application by pressing `stop` on the sidebar
 
+## Lessons leaned
+
+1. Langchain is poorly documented, lots of trial and error all around, specially to make custom prompts work
+2. If the transcription prompt is in question format or similar, GPT-4 will answer and therefore transcription will be overwritten by that answer. LOL
+3. AzureAI documentation and examples are fantastic
+4. Figuring a way to stop streamlit from within for mult-page app. I ended up using a sidebar page to stop the app.
+
 ## License
 
 See repository.

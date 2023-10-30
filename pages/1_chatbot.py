@@ -8,6 +8,7 @@ st.title("ChatBot")
 
 # Initialize KoshaTextDocs
 if 'text_doc_processor' not in st.session_state:
+    # TODO navigate to stop
     st.session_state.text_doc_processor = TextDocProcessor()
 
 text_doc_processor = st.session_state.text_doc_processor

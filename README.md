@@ -6,6 +6,7 @@
 
 The app works as follows:
 
+- Temp directory is created to store temporary files such as audio and transcriptions
 - The user sends a video to the bot or points to a YouTube URL.
 - The app extracts the audio from the video.
 - The app sends the audio to OpenAI and waits for transcription.
@@ -62,6 +63,8 @@ python3 bootstrap.py
 ```
 
 Example URL: [Introducing GPT-4](https://youtu.be/--khbXchTeE?si=O2DtXx8fcb0H4bta)
+
+You can stop the application by pressing `stop` on the sidebar
 
 ## License
 

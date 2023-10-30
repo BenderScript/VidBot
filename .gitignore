@@ -1,0 +1,13 @@
+.DS_Store
+*.env
+.docker.env
+.pytest_cache
+.idea
+__pycache__
+*.pyc
+node_modules
+*.egg-info
+.vscode
+*.json
+.legacy_code_repo
+.tempdir

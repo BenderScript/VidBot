@@ -4,3 +4,5 @@ pydub==0.25.1
 python-dotenv==1.0.0
 pytube==15.0.0
 streamlit==1.26.0
+psutil~=5.9.4
+keyboard~=0.13.5

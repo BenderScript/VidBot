@@ -32,7 +32,6 @@ You should create a `.env` file in the root directory of the app with the follow
 
 ```bash
 OPENAI_API_KEY=<your open ai key>
-TEMP_DOWNLOAD_PATH=${PWD}/.tempdir
 ```
 
 The `TEMP_DOWNLOAD_PATH` variable is used to store temporary files.
@@ -61,6 +60,8 @@ The app is built on top of Streamlit, but I provide a bootstrap file so you can 
 ```bash
 python3 bootstrap.py
 ```
+
+Example URL: [Introducing GPT-4](https://youtu.be/--khbXchTeE?si=O2DtXx8fcb0H4bta)
 
 ## License
 

@@ -1,5 +1,7 @@
 import os
 import re
+import shutil
+import tempfile
 
 import openai
 import streamlit as st
@@ -31,23 +33,16 @@ if 'chatbot_created' not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-temp_dir = os.getenv("TEMP_DOWNLOAD_PATH")
+if "temp_dir" not in st.session_state:
+    st.session_state.temp_dir = tempfile.mkdtemp(dir=".")
+
+temp_dir = st.session_state.temp_dir
 
 # Initialize KoshaTextDocs
 if 'text_doc_processor' not in st.session_state:
     st.session_state.text_doc_processor = TextDocProcessor(temp_dir=temp_dir)
 
 text_doc_processor = st.session_state.text_doc_processor
-
-
-def create_directory_if_not_exists(directory_path):
-    # Check if the directory already exists
-    if not os.path.exists(directory_path):
-        # If it doesn't exist, create the directory
-        os.makedirs(directory_path)
-        print(f"Directory '{directory_path}' created successfully.")
-    else:
-        print(f"Directory '{directory_path}' already exists.")
 
 
 def save_uploaded_file(uploaded_file):
@@ -245,6 +240,7 @@ def extract_audio_and_transcribe_from_youtube(urls, save_dir):
     try:
         # The GenericLoader is initialized with an instance of YoutubeAudioLoader (which is initialized
         # with the list of URLs and the save directory) and an instance of OpenAIWhisperParser.
+
         loader = GenericLoader(YoutubeAudioLoader(urls, save_dir), OpenAIWhisperParser())
 
         # The load method of the GenericLoader is called to load and parse the files.
@@ -271,6 +267,7 @@ def run():
 
     if url := st.text_input("Youtube URL", help="Youtube Video URL", placeholder="https://youtu.be/kCc8FmEb1nY"):
         with st.status("Preparing Chatbot...", expanded=True, state="running") as status:
+
             # Create a YouTube object
             status.write(f"Getting Youtube video info from : {url}...")
             yt = YouTube(url)
@@ -314,7 +311,6 @@ def run():
 
     if (uploaded_file := st.file_uploader("Choose a file", help="Upload a video file from your computer")) is not None:
         with st.status("Preparing Chatbot...this might take a while", expanded=True, state="running") as status:
-            create_directory_if_not_exists(temp_dir)
             uploaded_file.name = sanitize_file_name(uploaded_file.name)
             status.write(f"Saving file: {uploaded_file.name}...")
             save_uploaded_file(uploaded_file)

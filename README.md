@@ -2,6 +2,8 @@
 
 **VidBot is a chatbot that lets you ask questions about any video you want. Whether it's a movie, a lecture, or a tutorial, VidBot can help you find the information you need. You can use VidBot with videos stored on your computer or with YouTube links.**
 
+It uses the latest OpenAI GPT-4 for transcriptions and chat completions. 
+
 ## Application Flow
 
 The app works as follows:
@@ -17,7 +19,7 @@ The app works as follows:
 
 ## Goals
 
-The goal of this app was to use two different chatGPT providers, **OpenAI and AzureAI**, for the creation of a video chatbot.
+The goal of this app was to use two different OpenAI services, **trancription and completions**, for the creation of a video chatbot.
 
 ## Installation
 

@@ -9,7 +9,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
-from langchain.chat_models import AzureChatOpenAI
+from langchain.chat_models import ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
 
 
@@ -35,24 +35,15 @@ class TextDocProcessor:
         self.temp_dir = temp_dir
 
         if llm is None:
-            self.llm = AzureChatOpenAI(openai_api_key=self.config["OPENAI_API_KEY"],
-                                       openai_api_base=self.config["OPENAI_API_BASE"],
-                                       openai_api_version=self.config["OPENAI_API_VERSION"],
-                                       openai_api_type=self.config["OPENAI_API_TYPE"],
-                                       deployment_name=self.config["OPENAI_API_DEPLOYMENT_ID"],
-                                       model_name=self.config["OPENAI_API_MODEL_NAME"],
-                                       temperature=self.config["OPENAI_API_TEMPERATURE"])
+            self.llm = ChatOpenAI(openai_api_key=self.config["OPENAI_API_KEY"],
+                                  temperature=self.config["OPENAI_API_TEMPERATURE"],
+                                  model_name=self.config["OPENAI_API_MODEL_NAME"])
         else:
             self.llm = llm
 
         if embeddings is None:
             self.embeddings = OpenAIEmbeddings(
                 openai_api_key=self.config["OPENAI_API_KEY"],
-                openai_api_base=self.config["OPENAI_API_BASE"],
-                openai_api_version=self.config["OPENAI_API_EMBEDDING_API_VERSION"],
-                openai_api_type=self.config["OPENAI_API_TYPE"],
-                deployment=self.config["OPENAI_API_EMBEDDING_MODEL_DEPLOYMENT_ID"],
-                model=self.config["OPENAI_API_EMBEDDING_MODEL_NAME"],
                 chunk_size=1000)
         else:
             self.embeddings = embeddings
@@ -150,6 +141,6 @@ class TextDocProcessor:
         self.text_conv_chain = ConversationalRetrievalChain.from_llm(self.llm, retriever=self.text_retriever,
                                                                      memory=memory, verbose=True,
                                                                      combine_docs_chain_kwargs={"prompt": PROMPT}
-)
+                                                                     )
 
         return True

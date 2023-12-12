@@ -1,6 +1,5 @@
 import os
 import re
-import shutil
 import tempfile
 
 import openai
@@ -13,9 +12,11 @@ from langchain.schema import SystemMessage, HumanMessage
 from langchain.text_splitter import TokenTextSplitter
 from pydub import AudioSegment
 from pytube import YouTube
+from streamlit_extras.switch_page_button import switch_page
 
 from azure_open_ai_ctx import AzureOpenAICtx
 from exception_traceback import print_exception_details
+from open_ai_ctx import OpenAICtx
 from text_docs_processor import TextDocProcessor
 
 st.set_page_config(page_title="GenAI Transcriber", page_icon=":rocket:", layout="wide")
@@ -38,9 +39,9 @@ if "temp_dir" not in st.session_state:
 
 temp_dir = st.session_state.temp_dir
 
-# Initialize KoshaTextDocs
+# Initialize TextDocProcessor
 if 'text_doc_processor' not in st.session_state:
-    st.session_state.text_doc_processor = TextDocProcessor(temp_dir=temp_dir)
+    st.session_state.text_doc_processor = TextDocProcessor(temp_dir=temp_dir, env_file="./.env")
 
 text_doc_processor = st.session_state.text_doc_processor
 
@@ -153,7 +154,7 @@ def correct_audio_transcript(transcription_prompt, transcript_file):
 
     try:
         # Initialize AzureOpenAICtx with the given .azure.nv file
-        with AzureOpenAICtx("./.azure.env") as llm:
+        with OpenAICtx("./.env") as llm:
             # Prepend "corrected_" to the filename of the transcript file
             corrected_transcript_file = prepend_suffix_to_filename(transcript_file, "corrected_")
 
@@ -180,7 +181,7 @@ def correct_audio_transcript(transcription_prompt, transcript_file):
                             ),
                         ]
 
-                        # Get the response from AzureOpenAICtx
+                        # Get the response from LLM
                         resp = llm(messages)
 
                         # Append the response to the corrected transcript file
@@ -195,7 +196,7 @@ def correct_audio_transcript(transcription_prompt, transcript_file):
                 print(f"File '{transcript_file}' does not exist.")
                 st.error(f"File '{transcript_file}' does not exist.")
                 return None
-            except openai.error.RateLimitError as e:
+            except openai.RateLimitError as e:
                 st.warning("OpenAI API rate limit exceeded, cannot correct transcription.")
                 return None
 
@@ -245,6 +246,96 @@ def extract_audio_and_transcribe_from_youtube(urls, save_dir):
         return None  # Return None in case of an exception
 
 
+def prepare_youtube_chatbot(url, transcription_prompt):
+    with st.status("Preparing Chatbot...", expanded=True, state="running") as status:
+
+        # Create a YouTube object
+        status.write(f"Getting Youtube video info from : {url}...")
+        yt = YouTube(url)
+        # Get the title of the video
+        title = yt.title
+
+        status.write(f"Extracting audio from Youtube Video...this might take a while : \"{title}\"...")
+        documents = extract_audio_and_transcribe_from_youtube([url], temp_dir)
+        if documents is None:
+            status.error(f"transcribing video: {url}.")
+            url = None
+            return
+        status.write(f"Saving transcription...")
+        transcription = ""
+        transcript_file = os.path.join(temp_dir, sanitize_file_name(yt.title) + ".txt")
+        with open(transcript_file, "w") as f:
+            for document in documents:
+                transcription += document.page_content
+            f.write(transcription)
+
+        st.header("Transcription", divider="rainbow")
+        st.write(transcription)
+        st.divider()
+
+        status.write(f"Correcting transcription using OpenAI GPT-4.0...")
+
+        corrected_transcript_file = correct_audio_transcript(transcription_prompt, transcript_file)
+        # Set corrected_transcript_file to transcript_file if it is None
+        if corrected_transcript_file is None:
+            corrected_transcript_file = transcript_file
+        status.write(f"Loading transcriptions...")
+        text_doc_processor.load_text_docs(corrected_transcript_file)
+        status.write(f"Splitting transcriptions...")
+        text_doc_processor.split_text_docs()
+        status.write(f"Inserting transcriptions into VectorDB...")
+        text_doc_processor.create_text_retriever()
+        status.write(f"Creating Chatbot...")
+        text_doc_processor.create_text_conv_chain()
+        status.update(label="Chatbot created!", state="complete", expanded=True)
+        st.session_state.chatbot_created = True
+
+
+def prepare_file_chatbot(uploaded_file, transcription_prompt):
+    with st.status("Preparing Chatbot...this might take a while", expanded=True, state="running") as status:
+        uploaded_file.name = sanitize_file_name(uploaded_file.name)
+        status.write(f"Saving file: {uploaded_file.name}...")
+        save_uploaded_file(uploaded_file)
+        status.write(f"Extracting Audio from file...")
+        output_file_name = extract_mp3_from_video(uploaded_file.name)
+        if output_file_name is None:
+            status.error(f"extracting audio from: {uploaded_file.name}.")
+            uploaded_file = None
+            return
+        status.write(f"Transcribing audio using OpenAI GPT-3.5...")
+        documents = load_docs_and_transcribe_audio(output_file_name)
+        if documents is None:
+            status.error(f"transcribing audio: {output_file_name}.")
+            uploaded_file = None
+            return
+        transcript_file = os.path.join(temp_dir, f"transcript_{replace_extension(uploaded_file.name, '.txt')}")
+        status.write(f"Saving transcription...")
+        transcription = ""
+        with open(transcript_file, "w") as f:
+            for document in documents:
+                transcription += document.page_content
+            f.write(transcription)
+        st.header("Transcription", divider="rainbow")
+        st.write(transcription)
+
+        status.write(f"Correcting transcription OpenAI GPT-4.0...")
+        corrected_transcript_file = correct_audio_transcript(transcription_prompt, transcript_file)
+        # Set corrected_transcript_file to transcript_file if it is None
+        if corrected_transcript_file is None:
+            corrected_transcript_file = transcript_file
+        status.write(f"Loading transcriptions...")
+        text_doc_processor.load_text_docs(corrected_transcript_file)
+        status.write(f"Splitting transcriptions...")
+        text_doc_processor.split_text_docs()
+        status.write(f"Inserting transcriptions into VectorDB...")
+        text_doc_processor.create_text_retriever()
+        status.write(f"Creating Chatbot...")
+        text_doc_processor.create_text_conv_chain()
+        status.update(label="Chatbot created!", state="complete", expanded=True)
+        st.session_state.chatbot_created = True
+        # end of status context manager
+
+
 def run():
     transcription_prompt = st.text_area(
         "Transcription correction Prompt",
@@ -257,93 +348,21 @@ def run():
         height=100,
     )
 
-    if url := st.text_input("Youtube URL", help="Youtube Video URL", placeholder="https://youtu.be/kCc8FmEb1nY"):
-        with st.status("Preparing Chatbot...", expanded=True, state="running") as status:
+    url = st.text_input("Youtube URL", help="Youtube Video URL", value="https://youtu.be/h02ti0Bl6zk?si=8ekUlYXMEkNHGqBs",
+                        placeholder="https://youtu.be/h02ti0Bl6zk?si=8ekUlYXMEkNHGqBs")
 
-            # Create a YouTube object
-            status.write(f"Getting Youtube video info from : {url}...")
-            yt = YouTube(url)
-            # Get the title of the video
-            title = yt.title
+    uploaded_file = st.file_uploader("Choose a file", help="Upload a video file from your computer")
 
-            status.write(f"Extracting audio from Youtube Video...this might take a while : \"{title}\"...")
-            documents = extract_audio_and_transcribe_from_youtube([url], temp_dir)
-            if documents is None:
-                status.error(f"transcribing video: {url}.")
-                url = None
-                return
-            status.write(f"Saving transcription...")
-            transcription = ""
-            transcript_file = os.path.join(temp_dir, sanitize_file_name(yt.title) + ".txt")
-            with open(transcript_file, "w") as f:
-                for document in documents:
-                    transcription += document.page_content
-                f.write(transcription)
-
-            st.header("Transcription", divider="rainbow")
-            st.write(transcription)
-            st.divider()
-
-            status.write(f"Correcting transcription using Azure OpenAI GPT-4.0...")
-
-            corrected_transcript_file = correct_audio_transcript(transcription_prompt, transcript_file)
-            # Set corrected_transcript_file to transcript_file if it is None
-            if corrected_transcript_file is None:
-                corrected_transcript_file = transcript_file
-            status.write(f"Loading transcriptions...")
-            text_doc_processor.load_text_docs(corrected_transcript_file)
-            status.write(f"Splitting transcriptions...")
-            text_doc_processor.split_text_docs()
-            status.write(f"Inserting transcriptions into VectorDB...")
-            text_doc_processor.create_text_retriever()
-            status.write(f"Creating Chatbot...")
-            text_doc_processor.create_text_conv_chain()
-            status.update(label="Chatbot created!", state="complete", expanded=True)
-            st.session_state.chatbot_created = True
-
-    if (uploaded_file := st.file_uploader("Choose a file", help="Upload a video file from your computer")) is not None:
-        with st.status("Preparing Chatbot...this might take a while", expanded=True, state="running") as status:
-            uploaded_file.name = sanitize_file_name(uploaded_file.name)
-            status.write(f"Saving file: {uploaded_file.name}...")
-            save_uploaded_file(uploaded_file)
-            status.write(f"Extracting Audio from file...")
-            output_file_name = extract_mp3_from_video(uploaded_file.name)
-            if output_file_name is None:
-                status.error(f"extracting audio from: {uploaded_file.name}.")
-                uploaded_file = None
-                return
-            status.write(f"Transcribing audio using OpenAI GPT-3.5...")
-            documents = load_docs_and_transcribe_audio(output_file_name)
-            if documents is None:
-                status.error(f"transcribing audio: {output_file_name}.")
-                uploaded_file = None
-                return
-            transcript_file = os.path.join(temp_dir, f"transcript_{replace_extension(uploaded_file.name, '.txt')}")
-            status.write(f"Saving transcription...")
-            transcription = ""
-            with open(transcript_file, "w") as f:
-                for document in documents:
-                    transcription += document.page_content
-                f.write(transcription)
-            st.header("Transcription", divider="rainbow")
-            st.write(transcription)
-
-            status.write(f"Correcting transcription using Azure OpenAI GPT-4.0...")
-            corrected_transcript_file = correct_audio_transcript(transcription_prompt, transcript_file)
-            # Set corrected_transcript_file to transcript_file if it is None
-            if corrected_transcript_file is None:
-                corrected_transcript_file = transcript_file
-            status.write(f"Loading transcriptions...")
-            text_doc_processor.load_text_docs(corrected_transcript_file)
-            status.write(f"Splitting transcriptions...")
-            text_doc_processor.split_text_docs()
-            status.write(f"Inserting transcriptions into VectorDB...")
-            text_doc_processor.create_text_retriever()
-            status.write(f"Creating Chatbot...")
-            text_doc_processor.create_text_conv_chain()
-            status.update(label="Chatbot created!", state="complete", expanded=True)
-            st.session_state.chatbot_created = True
-            # end of status context manager
+    if st.button('Next'):
+        if url:
+            prepare_youtube_chatbot(url, transcription_prompt)
+            switch_page("chatbot")
+        if uploaded_file:
+            prepare_file_chatbot(uploaded_file, transcription_prompt)
+            switch_page("chatbot")
+        else:
+            st.error("No file uploaded")
+            switch_page("stop")
 
 
 run()

@@ -339,10 +339,13 @@ def prepare_file_chatbot(uploaded_file, transcription_prompt):
 def run():
     transcription_prompt = st.text_area(
         "Transcription correction Prompt",
-        placeholder="You are a helpful assistant for the company ZyntriQix. Your task is to correct any spelling "
+        placeholder="You are a helpful assistant for the company OpenAI. Your task is to correct any spelling "
                     "discrepancies in the transcribed text. Make sure that the names of the following products are "
-                    "spelled correctly: ZyntriQix, Digique Plus, CynapseFive, VortiQore V8, EchoNix Array, OrbitalLink "
-                    "Seven, DigiFractal Matrix, PULSE, RAPT, B.R.I.C.K., Q.U.A.R.T.Z., F.L.I.N.T. Only add necessary "
+                    "spelled correctly: GPT-4, Dall-E, Dall-E 3. Only add necessary "
+                    "punctuation such as periods, commas, and capitalization, and use only the context provided.",
+        value="You are a helpful assistant for the company OpenAI. Your task is to correct any spelling "
+                    "discrepancies in the transcribed text. Make sure that the names of the following products are "
+                    "spelled correctly: GPT-4, Dall-E, Dall-E 3. Only add necessary "
                     "punctuation such as periods, commas, and capitalization, and use only the context provided.",
         help="Write a prompt that will be passed to GPT-3.5 to correct the transcription.",
         height=100,

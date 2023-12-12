@@ -125,7 +125,7 @@ class TextDocProcessor:
         """
 
         template = """
-        Given the following conversation and context, respond to the best of your ability:
+        Given the following video transcription and context, respond to the best of your ability:
         Context:  {context}
         Chat History:  {chat_history}
         Follow Up Input: {question}

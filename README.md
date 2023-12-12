@@ -35,25 +35,6 @@ You should create a `.env` file in the root directory of the app with the follow
 OPENAI_API_KEY=<your open ai key>
 ```
 
-The `TEMP_DOWNLOAD_PATH` variable is used to store temporary files.
-
-You must also provide a `.azure.env` file in the same directory with the following variables:
-
-```bash
-OPENAI_API_KEY=<your AzureAI key>
-OPENAI_API_TYPE=azure
-OPENAI_API_BASE=<your AzureAI base url>
-OPENAI_API_DEPLOYMENT_ID=<deployment ID, some docs call it deployment name>
-OPENAI_API_VERSION=2023-05-15
-OPENAI_API_REGION=<AzureAI region, optional>
-OPENAI_API_MAX_TOKENS=8192
-OPENAI_API_TEMPERATURE=0.1
-OPENAI_API_MODEL_NAME=gpt-4
-OPENAI_API_EMBEDDING_MODEL_NAME=text-embedding-ada-002
-OPENAI_API_EMBEDDING_MODEL_DEPLOYMENT_ID=<deployment ID, some docs call it deployment name>
-OPENAI_API_EMBEDDING_API_VERSION=2023-03-15-preview
-```
-
 ## Running
 
 The app is built on top of Streamlit, but I provide a bootstrap file so you can run it simply with:

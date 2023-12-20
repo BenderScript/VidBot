@@ -14,7 +14,6 @@ from pydub import AudioSegment
 from pytube import YouTube
 from streamlit_extras.switch_page_button import switch_page
 
-from azure_open_ai_ctx import AzureOpenAICtx
 from exception_traceback import print_exception_details
 from open_ai_ctx import OpenAICtx
 from text_docs_processor import TextDocProcessor
@@ -341,11 +340,11 @@ def run():
         "Transcription correction Prompt",
         placeholder="You are a helpful assistant for the company OpenAI. Your task is to correct any spelling "
                     "discrepancies in the transcribed text. Make sure that the names of the following products are "
-                    "spelled correctly: GPT-4, Dall-E, Dall-E 3. Only add necessary "
+                    "spelled correctly: GPT-4, GPT-4V(vision), Dall-E, Dall-E 3. Only add necessary "
                     "punctuation such as periods, commas, and capitalization, and use only the context provided.",
         value="You are a helpful assistant for the company OpenAI. Your task is to correct any spelling "
                     "discrepancies in the transcribed text. Make sure that the names of the following products are "
-                    "spelled correctly: GPT-4, Dall-E, Dall-E 3. Only add necessary "
+                    "spelled correctly: GPT-4, GPT-4V(vision), Dall-E, Dall-E 3. Only add necessary "
                     "punctuation such as periods, commas, and capitalization, and use only the context provided.",
         help="Write a prompt that will be passed to GPT-3.5 to correct the transcription.",
         height=100,

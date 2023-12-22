@@ -128,7 +128,7 @@ class TextDocProcessor:
         Given the following video transcription and context, respond to the best of your ability:
         Context:  {context}
         Chat History:  {chat_history}
-        Follow Up Input: {question}
+        Question: {question}
         """
 
         PROMPT = PromptTemplate(

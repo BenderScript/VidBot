@@ -35,6 +35,8 @@ You should create a `.env` file in the root directory of the app with the follow
 
 ```bash
 OPENAI_API_KEY=<your open ai key>
+OPENAI_API_TEMPERATURE=0.6
+OPENAI_API_MODEL_NAME=gpt-4
 ```
 
 ## Running

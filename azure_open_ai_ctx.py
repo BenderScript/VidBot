@@ -1,5 +1,6 @@
 from dotenv import dotenv_values
 from langchain.chat_models import AzureChatOpenAI
+from langchain_openai import AzureChatOpenAI
 
 
 class AzureOpenAICtx:

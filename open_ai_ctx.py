@@ -1,5 +1,5 @@
 from dotenv import dotenv_values
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 
 
 class OpenAICtx:

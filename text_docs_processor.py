@@ -5,12 +5,12 @@ import os
 from dotenv import dotenv_values
 from langchain.document_loaders.directory import DirectoryLoader
 from langchain.memory import ConversationBufferMemory
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Chroma
-from langchain.chat_models import ChatOpenAI
+from langchain_community.vectorstores import Chroma
+from langchain_openai import ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
+from langchain_openai import OpenAIEmbeddings
 
 
 class TextDocProcessor:

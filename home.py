@@ -1,11 +1,14 @@
+import glob
 import os
 import re
+import shutil
 import tempfile
 
 import openai
 import streamlit as st
 from dotenv import load_dotenv
-from langchain.document_loaders import YoutubeAudioLoader
+# from langchain.document_loaders import YoutubeAudioLoader
+from langchain_community.document_loaders import YoutubeAudioLoader
 from langchain.document_loaders.generic import GenericLoader
 from langchain.document_loaders.parsers import OpenAIWhisperParser
 from langchain.schema import SystemMessage, HumanMessage
@@ -18,10 +21,36 @@ from exception_traceback import print_exception_details
 from open_ai_ctx import OpenAICtx
 from text_docs_processor import TextDocProcessor
 
+
+def remove_temp_folders(temp_folder_path="."):
+    """
+    Removes temporary folders with a specific naming pattern from the given path.
+
+    :param temp_folder_path: The path where the temporary folders are located.
+    """
+    # Use glob to find all folders that match the naming pattern
+    temp_folders = glob.glob(os.path.join(temp_folder_path, 'tmp*'))
+
+    # Loop through the folders and remove them
+    for folder in temp_folders:
+        try:
+            # Use shutil.rmtree to remove folders that might contain files
+            shutil.rmtree(folder)
+            print(f"Removed folder: {folder}")
+        except OSError as e:
+            print(f"Error removing folder {folder}: {e}")
+
+
 st.set_page_config(page_title="GenAI Transcriber", page_icon=":rocket:", layout="wide")
 st.title("GenAI - Transcriber On-Demand Chatbot App")
 
 # Initialization
+
+# Streamlit integration
+if 'has_run' not in st.session_state:
+    remove_temp_folders()  # Adjust path if necessary
+    st.session_state['has_run'] = True
+
 if 'openai_api_key' not in st.session_state:
     load_dotenv(override=True, dotenv_path=".env")  # take environment variables from .env.
     openai.api_key = os.getenv("OPENAI_API_KEY")

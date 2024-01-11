@@ -3,7 +3,7 @@
 import os
 
 from dotenv import dotenv_values
-from langchain.document_loaders.directory import DirectoryLoader
+from langchain_community.document_loaders import DirectoryLoader
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter

@@ -11,3 +11,4 @@ chromadb==0.4.22
 tiktoken==0.5.2
 langchain_openai==0.0.2
 yt_dlp==2023.12.30
+unstructured==0.12.0

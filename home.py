@@ -53,7 +53,7 @@ st.title("GenAI - Transcriber On-Demand Chatbot App")
 
 # Streamlit integration
 if 'has_run' not in st.session_state:
-    remove_temp_folders()  # Adjust path if necessary
+    remove_temp_folders()
     st.session_state['has_run'] = True
 
 if 'openai_api_key' not in st.session_state:

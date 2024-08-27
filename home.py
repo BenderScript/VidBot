@@ -8,11 +8,16 @@ import openai
 import streamlit as st
 from dotenv import load_dotenv
 # from langchain.document_loaders import YoutubeAudioLoader
-from langchain_community.document_loaders import YoutubeAudioLoader
-from langchain.document_loaders.generic import GenericLoader
-from langchain.document_loaders.parsers import OpenAIWhisperParser
-from langchain.schema import SystemMessage, HumanMessage
-from langchain.text_splitter import TokenTextSplitter
+from langchain_community.document_loaders.blob_loaders.youtube_audio import (
+    YoutubeAudioLoader,
+)
+from langchain_community.document_loaders import GenericLoader
+from langchain_community.document_loaders.parsers import (
+    OpenAIWhisperParser,
+    OpenAIWhisperParserLocal,
+)
+from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_text_splitters import TokenTextSplitter
 from pydub import AudioSegment
 from pytube import YouTube
 from streamlit_extras.switch_page_button import switch_page

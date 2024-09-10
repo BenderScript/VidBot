@@ -7,15 +7,11 @@ import tempfile
 import openai
 import streamlit as st
 from dotenv import load_dotenv
-# from langchain.document_loaders import YoutubeAudioLoader
 from langchain_community.document_loaders.blob_loaders.youtube_audio import (
     YoutubeAudioLoader,
 )
-from langchain_community.document_loaders import GenericLoader
-from langchain_community.document_loaders.parsers import (
-    OpenAIWhisperParser,
-    OpenAIWhisperParserLocal,
-)
+from langchain_community.document_loaders.generic import GenericLoader
+from langchain_community.document_loaders.parsers.audio import OpenAIWhisperParserLocal
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_text_splitters import TokenTextSplitter
 from pydub import AudioSegment
@@ -160,7 +156,7 @@ def load_docs_and_transcribe_audio(audio_file_path):
         loader = GenericLoader.from_filesystem(
             os.path.dirname(audio_file_path),  # Directory of the audio file
             glob=os.path.basename(audio_file_path),  # Basename of the audio file
-            parser=OpenAIWhisperParser()  # Parser to parse the loaded files
+            parser=OpenAIWhisperParserLocal()  # Parser to parse the loaded files
         )
 
         # The load method of the GenericLoader is called to load and parse the files.
@@ -251,7 +247,7 @@ def extract_audio_and_transcribe_from_youtube(urls, save_dir):
     """
     Extract audio from YouTube videos and transcribe it to text using the Langchain framework.
 
-    This function uses a GenericLoader to load audio from YouTube videos and an OpenAIWhisperParser
+    This function uses a GenericLoader to load audio from YouTube videos and an OpenAIWhisperParserLocal
     to parse these files. If there's an exception during this process, it catches it, prints its details,
     and returns None. Otherwise, it returns a list of documents representing the transcribed text.
 
@@ -267,7 +263,9 @@ def extract_audio_and_transcribe_from_youtube(urls, save_dir):
         # The GenericLoader is initialized with an instance of YoutubeAudioLoader (which is initialized
         # with the list of URLs and the save directory) and an instance of OpenAIWhisperParser.
 
-        loader = GenericLoader(YoutubeAudioLoader(urls, save_dir), OpenAIWhisperParser())
+        loader = GenericLoader(
+            YoutubeAudioLoader(urls, save_dir), OpenAIWhisperParserLocal()
+)
 
         # The load method of the GenericLoader is called to load and parse the files.
         # The parsed files are returned as a list of documents.
@@ -298,20 +296,23 @@ def prepare_youtube_chatbot(url, transcription_prompt):
         transcription = ""
         transcript_file = os.path.join(temp_dir, sanitize_file_name(yt.title) + ".txt")
         with open(transcript_file, "w") as f:
-            for document in documents:
-                transcription += document.page_content
-            f.write(transcription)
+            combined_docs = [doc.page_content for doc in docs]
+            text = " ".join(combined_docs)
+            f.write(text)
 
         st.header("Transcription", divider="rainbow")
         st.write(transcription)
         st.divider()
 
-        status.write(f"Correcting transcription using OpenAI GPT-4.0...")
-
-        corrected_transcript_file = correct_audio_transcript(transcription_prompt, transcript_file)
-        # Set corrected_transcript_file to transcript_file if it is None
-        if corrected_transcript_file is None:
+        if transcription_prompt is None:
             corrected_transcript_file = transcript_file
+
+        # status.write(f"Correcting transcription using OpenAI GPT-4.0...")
+
+        # corrected_transcript_file = correct_audio_transcript(transcription_prompt, transcript_file)
+        # Set corrected_transcript_file to transcript_file if it is None
+        # if corrected_transcript_file is None:
+        #     corrected_transcript_file = transcript_file
         status.write(f"Loading transcriptions...")
         text_doc_processor.load_text_docs(corrected_transcript_file)
         status.write(f"Splitting transcriptions...")
@@ -370,13 +371,23 @@ def prepare_file_chatbot(uploaded_file, transcription_prompt):
 
 
 def run():
+    # transcription_prompt = st.text_area(
+    #     "Transcription correction Prompt",
+    #     placeholder="You are a helpful assistant for the company OpenAI. Your task is to correct any spelling "
+    #                 "discrepancies in the transcribed text. Make sure that the names of the following products are "
+    #                 "spelled correctly: GPT-4, GPT-4V(vision), Dall-E, Dall-E 3. Only add necessary "
+    #                 "punctuation such as periods, commas, and capitalization, and use only the context provided.",
+    #     value="You are a helpful assistant for the company OpenAI. Your task is to correct any spelling "
+    #                 "discrepancies in the transcribed text. Make sure that the names of the following products are "
+    #                 "spelled correctly: GPT-4, GPT-4V(vision), Dall-E, Dall-E 3. Only add necessary "
+    #                 "punctuation such as periods, commas, and capitalization, and use only the context provided.",
+    #     help="Write a prompt that will be passed to GPT-3.5 to correct the transcription.",
+    #     height=100,
+    # )
+
     transcription_prompt = st.text_area(
         "Transcription correction Prompt",
         placeholder="You are a helpful assistant for the company OpenAI. Your task is to correct any spelling "
-                    "discrepancies in the transcribed text. Make sure that the names of the following products are "
-                    "spelled correctly: GPT-4, GPT-4V(vision), Dall-E, Dall-E 3. Only add necessary "
-                    "punctuation such as periods, commas, and capitalization, and use only the context provided.",
-        value="You are a helpful assistant for the company OpenAI. Your task is to correct any spelling "
                     "discrepancies in the transcribed text. Make sure that the names of the following products are "
                     "spelled correctly: GPT-4, GPT-4V(vision), Dall-E, Dall-E 3. Only add necessary "
                     "punctuation such as periods, commas, and capitalization, and use only the context provided.",

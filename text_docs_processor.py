@@ -14,7 +14,7 @@ from langchain_openai import OpenAIEmbeddings
 
 
 class TextDocProcessor:
-    def __init__(self, llm=None, embeddings=None, env_file="./.azure.env", temp_dir="./.tempdir"):
+    def __init__(self, llm=None, embeddings=None, env_file="./.env", temp_dir="./.tempdir"):
 
         """
         Initialize the TextDocProcessor class. This class packs everything needed to
@@ -23,12 +23,12 @@ class TextDocProcessor:
 
         :param llm: If None, default is AzureChatOpenAI instance
         :param embeddings: If None, default is OpenAIEmbeddings instance
-        :param env_file: path to the environment file, default is "./.azure.env"
+        :param env_file: path to the environment file, default is "./.env"
         :param temp_dir: path to the temporary directory, default is "./.tempdir"
         """
 
         # Check if env_file exists when llm or embeddings are None
-        if (llm is None or embeddings is None) and not os.path.exists(env_file):
+        if (llm is None) and not os.path.exists(env_file):
             raise FileNotFoundError(f"No env_file found at {env_file}")
 
         self.config = dotenv_values(env_file)
@@ -41,12 +41,7 @@ class TextDocProcessor:
         else:
             self.llm = llm
 
-        if embeddings is None:
-            self.embeddings = OpenAIEmbeddings(
-                openai_api_key=self.config["OPENAI_API_KEY"],
-                chunk_size=1000)
-        else:
-            self.embeddings = embeddings
+        self.embeddings = embeddings
 
         # These are the "loaded" docs or files. Nomenclature changes a lot based on the library
         self.text_docs = []
@@ -109,7 +104,7 @@ class TextDocProcessor:
         :return: True if successful, False otherwise
         """
 
-        db = Chroma.from_documents(self.texts, self.embeddings)
+        db = Chroma.from_documents(documents=self.texts, embedding=self.embeddings, collection_name="VidBot")
 
         self.text_retriever = db.as_retriever(
             search_type="similarity",

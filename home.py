@@ -290,15 +290,21 @@ def prepare_youtube_chatbot(url, transcription_prompt):
         documents = extract_audio_and_transcribe_from_youtube([url], temp_dir)
         if documents is None:
             status.error(f"transcribing video: {url}.")
-            url = None
-            return
+            st.session_state.chatbot_created = False
+            url = None # ?
+            return False
         status.write(f"Saving transcription...")
-        transcription = ""
         transcript_file = os.path.join(temp_dir, sanitize_file_name(yt.title) + ".txt")
-        with open(transcript_file, "w") as f:
-            combined_docs = [doc.page_content for doc in documents]
-            text = " ".join(combined_docs)
-            f.write(text)
+        try:
+            with open(transcript_file, "w") as f:
+                combined_docs = [doc.page_content for doc in documents]
+                transcription = " ".join(combined_docs)
+                f.write(transcription)
+        except Exception as e:  # Catch any exceptions that occur during execution
+            # TODO status.error() ?
+            print_exception_details(e)  # Print the details of the exception
+            st.session_state.chatbot_created = False
+            return False  # Return None in case of an exception
 
         st.header("Transcription", divider="rainbow")
         st.write(transcription)
@@ -323,6 +329,7 @@ def prepare_youtube_chatbot(url, transcription_prompt):
         text_doc_processor.create_text_conv_chain()
         status.update(label="Chatbot created!", state="complete", expanded=True)
         st.session_state.chatbot_created = True
+        return True
 
 
 def prepare_file_chatbot(uploaded_file, transcription_prompt):
@@ -402,9 +409,12 @@ def run():
 
     if st.button('Next'):
         if url:
-            prepare_youtube_chatbot(url, transcription_prompt)
-            switch_page("chatbot")
-        if uploaded_file:
+            if prepare_youtube_chatbot(url, transcription_prompt):
+                switch_page("chatbot")
+            else:
+                st.error("Failed to create chatbot")
+                switch_page("stop")
+        elif uploaded_file:
             prepare_file_chatbot(uploaded_file, transcription_prompt)
             switch_page("chatbot")
         else:

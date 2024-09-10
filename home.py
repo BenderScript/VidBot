@@ -296,7 +296,7 @@ def prepare_youtube_chatbot(url, transcription_prompt):
         transcription = ""
         transcript_file = os.path.join(temp_dir, sanitize_file_name(yt.title) + ".txt")
         with open(transcript_file, "w") as f:
-            combined_docs = [doc.page_content for doc in docs]
+            combined_docs = [doc.page_content for doc in documents]
             text = " ".join(combined_docs)
             f.write(text)
 

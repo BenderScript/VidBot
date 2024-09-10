@@ -1,4 +1,11 @@
+# Uncomment for Torch with CUDA support
+# --extra-index-url https://download.pytorch.org/whl/cu124
 langchain-core==0.2.35
+torch==2.4.1
+torchvision==0.19.1
+torchaudio==2.4.1
+transformers==4.44.2
+librosa==0.10.2.post1
 pydub==0.25.1
 python-dotenv==1.0.1
 pytube==15.0.0

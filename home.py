@@ -264,8 +264,7 @@ def extract_audio_and_transcribe_from_youtube(urls, save_dir):
         # with the list of URLs and the save directory) and an instance of OpenAIWhisperParser.
 
         loader = GenericLoader(
-            YoutubeAudioLoader(urls, save_dir), OpenAIWhisperParserLocal()
-)
+            YoutubeAudioLoader(urls, save_dir), OpenAIWhisperParserLocal())
 
         # The load method of the GenericLoader is called to load and parse the files.
         # The parsed files are returned as a list of documents.
@@ -291,7 +290,7 @@ def prepare_youtube_chatbot(url, transcription_prompt):
         if documents is None:
             status.error(f"transcribing video: {url}.")
             st.session_state.chatbot_created = False
-            url = None # ?
+            url = None  # ?
             return False
         status.write(f"Saving transcription...")
         transcript_file = os.path.join(temp_dir, sanitize_file_name(yt.title) + ".txt")

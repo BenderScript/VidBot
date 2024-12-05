@@ -10,7 +10,6 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_openai import ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
-from langchain_openai import OpenAIEmbeddings
 
 
 class TextDocProcessor:
@@ -36,8 +35,8 @@ class TextDocProcessor:
 
         if llm is None:
             self.llm = ChatOpenAI(openai_api_key=self.config["OPENAI_API_KEY"],
-                                  temperature=self.config["OPENAI_API_TEMPERATURE"],
-                                  model_name=self.config["OPENAI_API_MODEL_NAME"])
+                                  temperature=self.config["OPENAI_TEMPERATURE"],
+                                  model_name=self.config["OPENAI_MODEL_NAME"])
         else:
             self.llm = llm
 

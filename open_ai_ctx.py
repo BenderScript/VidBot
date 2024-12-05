@@ -27,8 +27,8 @@ class OpenAICtx:
         :return: The initialized AzureChatOpenAI instance.
         """
         self.llm = ChatOpenAI(openai_api_key=self.config["OPENAI_API_KEY"],
-                              temperature=self.config["OPENAI_API_TEMPERATURE"],
-                              model_name=self.config["OPENAI_API_MODEL_NAME"])
+                              temperature=self.config["OPENAI_TEMPERATURE"],
+                              model_name=self.config["OPENAI_MODEL_NAME"])
         return self.llm
 
     def __exit__(self, exc_type, exc_value, exc_tb):
